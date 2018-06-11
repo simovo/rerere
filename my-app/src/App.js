@@ -3,7 +3,7 @@ import Todolist from './components/Todolist'
 import axios from 'axios'
 let count = 1
   const TodoAPI = axios.create({
-    baseURL: 'https://polar-mustang.glitch.me'
+    baseURL: process.env.REACT_APP_API_URL
   })
 class App extends Component {
   state = {
@@ -60,6 +60,16 @@ class App extends Component {
    }
   }
 
+  handletodoItemBodyUpdate = async(id, body) =>{
+    this.setState({
+      loading : true
+    })
+    await TodoAPI.patch(`/todos/${id}`, {
+      body
+    })
+   await this.fetchTodos()
+  }
+
 handletodoItemComplete = async id =>{
   this.setState({
     loading : true
@@ -97,7 +107,8 @@ handleDel = async id => {
         ) : (
 <Todolist todos = {todos} 
       handletodoItemComplete = {this.handletodoItemComplete} 
-      handleDel={this.handleDel}  /> 
+      handleDel={this.handleDel}
+      handletodoItemBodyUpdate={this.handletodoItemBodyUpdate}  /> 
         )}
       </div>
     );

@@ -6,7 +6,9 @@ export default class Todolist extends Component {
     const {
       todos,
       handletodoItemComplete,
-      handleDel} = this.props
+      handleDel,
+      handletodoItemBodyUpdate
+    } = this.props
     return(
       <ul>
         {
@@ -14,7 +16,8 @@ export default class Todolist extends Component {
             key={todo.id}
             {...todo}
             onComplete={handletodoItemComplete}
-            del={handleDel} />
+            del={handleDel}
+            onBodyUpdate={handletodoItemBodyUpdate} />
           ))
         }
       </ul>
