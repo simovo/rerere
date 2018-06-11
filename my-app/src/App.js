@@ -1,76 +1,89 @@
 import React, { Component } from 'react';
-
-let count = 0;
-
+import Todolist from './components/Todolist'
+import axios from 'axios'
+let count = 1
+  const TodoAPI = axios.create({
+    baseURL: 'https://polar-mustang.glitch.me'
+  })
 class App extends Component {
   state = {
+    loading : false,
     todos : [
-      {
-        id: count++,
-        body: "공부",
-        complete: true
-      },
-      {
-        id: count++,
-        body: "공부",
-        complete: false
-      }
+      // {
+      //   id: count++,
+      //   body: "공부",
+      //   complete: true
+      // },
+      // {
+      //   id: count++,
+      //   body: "공부",
+      //   complete: false
+      // }
     ],
     newTodoBody : ''
-
   }
 
+  async componentDidMount(){
+  await this.fetchTodos()
+  }
 
+  fetchTodos = async () => {
+    this.setState({
+      loading: true
+    })
+    const res = await TodoAPI.get('./todos')
+    this.setState({
+      todos: res.data,
+      loading: false
+    })
+
+  }
 
   handleInputChange = e => {
     this.setState({newTodoBody : e.target.value})
   }
 
-  handelBtnClick = e => {
+  handelBtnClick = async e => {
   if (this.state.newTodoBody) {
       const newTodo = {
         body : this.state.newTodoBody,
         complete :false,
-        id: count++
       };
       this.setState({
-        todos : [
-          ...this.state.todos,
-          newTodo
-        ],
+        loading : true
+      })
+     await TodoAPI.post('/todos', newTodo)
+     await this.fetchTodos()
+      this.setState({
         newTodoBody:''
       });
    }
   }
 
-handletodoItemComplete = id =>{
+handletodoItemComplete = async id =>{
   this.setState({
-      todos :  this.state.todos.map(t => {
-            const newtodo = {
-              ...t
-            }
-            if (t.id === id) {
-              newtodo.complete = true;
-            }
-            return newtodo
-          })
-        })
-}
-
-handleDel = id => {
-  this.setState({
-    todos: this.state.todos.filter(t => t.id !== id)
-
-        })
-
-
+    loading : true
+  })
+     await TodoAPI.patch(`/todos/${id}` , {
+      complete : true 
+    })
+  await this.fetchTodos()
 }
 
 
-  
+handleDel = async id => {
+  this.setState({loading :true})
+  await TodoAPI.delete(`/todos/${id}`)
+  await this.fetchTodos();
+}
+
+
+
+
+
+
   render() {
-  const {todos, newTodoBody} = this.state
-
+  const {todos, newTodoBody, loading} = this.state
     return (
       <div>
         <h1>할일 목록</h1>
@@ -79,19 +92,13 @@ handleDel = id => {
         <input type="text" value={newTodoBody} onChange={this.handleInputChange} />
       <button onClick={this.handelBtnClick}>추가</button>
         </label>
-      <ul>
-        {
-          todos.map(todo => ( <TodoItem 
-            key = {todo.id} 
-           {...todo}
-             onComplete = {this.handletodoItemComplete} 
-             del = {this.handleDel} />
-            
-            ))
-
-        }
-
-      </ul>
+        {loading ? (
+          <div> loading... </div>
+        ) : (
+<Todolist todos = {todos} 
+      handletodoItemComplete = {this.handletodoItemComplete} 
+      handleDel={this.handleDel}  /> 
+        )}
       </div>
     );
   }
@@ -99,28 +106,6 @@ handleDel = id => {
 
 
 
-class TodoItem extends Component {
-render(){
-
-  const {id,body,complete, onComplete, del} =this.props
-
-return (
-<li className = { complete ? 'complete' : '' }> 
-
-{ body }
-
-    < button onClick = {e => {onComplete(id) }} > 완료</button >
-
-      <button onClick={ e => {del(id)}}> 삭제</button>
-           
-           
-            </li >
-
-  )
-
-}
-
-}
 
 
 export default App;
